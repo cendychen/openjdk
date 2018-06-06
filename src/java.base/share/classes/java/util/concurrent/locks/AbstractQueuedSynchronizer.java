@@ -392,6 +392,7 @@ public abstract class AbstractQueuedSynchronizer
      * on the design of this class.
      */
     static final class Node {
+
         /** Marker to indicate a node is waiting in shared mode */
         static final Node SHARED = new Node();
         /** Marker to indicate a node is waiting in exclusive mode */
@@ -2297,6 +2298,10 @@ public abstract class AbstractQueuedSynchronizer
     }
 
     // VarHandle mechanics
+    // 从 JDK 9 版本开始，使用 VarHandle 取代 Unsafe ，在 AbstractQueuedSynchronizer 中，使用它的 CAS 设置 state、head、tail 变量。
+    // 可参看文章：
+    // 1. 《Java 9 系列(七) Variable Handles》https://segmentfault.com/a/1190000013544841
+    // 2. 《社区开始围绕移除 sun.misc.Unsafe 类展开讨论》http://www.infoq.com/cn/news/2015/08/oracle-plan-remove-unsafe
     private static final VarHandle STATE;
     private static final VarHandle HEAD;
     private static final VarHandle TAIL;
@@ -2304,6 +2309,7 @@ public abstract class AbstractQueuedSynchronizer
     static {
         try {
             MethodHandles.Lookup l = MethodHandles.lookup();
+            // 获得 STATE、HEAD、TAIL 变量
             STATE = l.findVarHandle(AbstractQueuedSynchronizer.class, "state", int.class);
             HEAD = l.findVarHandle(AbstractQueuedSynchronizer.class, "head", Node.class);
             TAIL = l.findVarHandle(AbstractQueuedSynchronizer.class, "tail", Node.class);
@@ -2327,8 +2333,11 @@ public abstract class AbstractQueuedSynchronizer
 
     /**
      * CASes tail field.
+     *
+     * 通过 CAS 方式，设置 tail 属性
      */
     private final boolean compareAndSetTail(Node expect, Node update) {
         return TAIL.compareAndSet(this, expect, update);
     }
+
 }
